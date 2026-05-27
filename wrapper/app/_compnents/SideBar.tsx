@@ -1,5 +1,7 @@
+"use client"
+
 import React from "react";
-import { WorkspaceMenu } from "../servics/Option";
+import { WorkspaceMenu } from "../services/Option";
 import { usePathname } from "next/navigation";
 
 function SideBar() {
