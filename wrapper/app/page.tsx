@@ -1,13 +1,21 @@
-"use client"
+"use client";
 
-import DesignHeader from "@/app/_compnents/DesignHeader"
+import DesignHeader from "@/app/_compnents/DesignHeader";
+import SideBar from "./_compnents/SideBar";
 
 export default function Home() {
   return (
     <main className="relative h-screen overflow-hidden bg-white">
-
       <DesignHeader />
-
+      <div className="flex flex-1 overflow-hidden relative">
+        <SideBar />
+        <div>
+          {/*
+            TODO: Layout canvas
+            // <Editor />
+          */}
+        </div>
+      </div>
       {/* grid components */}
       <div className="relative h-full w-full overflow-hidden">
         <div
@@ -18,7 +26,6 @@ export default function Home() {
           "
         />
       </div>
-
     </main>
-  )
+  );
 }
