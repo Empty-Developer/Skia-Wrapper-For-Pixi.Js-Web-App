@@ -1,6 +1,6 @@
 "use client"
 
-import DesignHeader from "@/components/design/DesignHeader"
+import DesignHeader from "@/app/_compnents/DesignHeader"
 
 export default function Home() {
   return (
