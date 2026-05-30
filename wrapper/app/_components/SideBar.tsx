@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { WorkspaceMenu } from "../../services/Option";
+import { WorkspaceMenu } from "../../services/options/Option";
 import { usePathname } from "next/navigation";
 import CustomPopover from "./CustomPopover";
 

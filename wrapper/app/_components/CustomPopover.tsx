@@ -39,10 +39,10 @@ function CustomPopover({ children, open, onOpenChange }: CustomPopoverProps) {
             <Image src="/pluse.png" alt="Pluse" fill className="object-cover" />
           </div>
           <div className="border relative h-24 w-full rounded-lg overflow-hidden opacity-80 hover:opacity-100 transition-opacity cursor-pointer">
-            <Image src="/pluse.png" alt="Pluse" fill className="object-cover" />
+            <Image src="/random-one.png" alt="Random One" fill className="object-cover" />
           </div>
           <div className="border relative h-24 w-full rounded-lg overflow-hidden opacity-80 hover:opacity-100 transition-opacity cursor-pointer">
-            <Image src="/pluse.png" alt="Pluse" fill className="object-cover" />
+            <Image src="/random-two.png" alt="Random Two" fill className="object-cover" />
           </div>
         </div>
       </PopoverContent>
