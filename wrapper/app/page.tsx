@@ -1,12 +1,13 @@
 "use client";
 
-import DesignHeader from "@/app/_compnents/DesignHeader";
-import SideBar from "./_compnents/SideBar";
+import DesignHeader from "@/app/_components/DesignHeader";
+import SideBar from "./_components/SideBar";
 
 export default function Home() {
   return (
     <main className="relative h-screen overflow-hidden bg-white">
 
+      {/* grid background */}
       <div
         className="
           absolute inset-0
