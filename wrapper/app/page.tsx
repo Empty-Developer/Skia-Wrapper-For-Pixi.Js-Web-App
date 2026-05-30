@@ -2,6 +2,7 @@
 
 import DesignHeader from "@/app/_components/DesignHeader";
 import SideBar from "./_components/SideBar";
+import Editor from "./_components/Editor";
 
 export default function Home() {
   return (
@@ -21,11 +22,8 @@ export default function Home() {
         <DesignHeader />
         <div className="flex flex-1 overflow-hidden relative">
           <SideBar />
-          <div>
-            {/*
-              TODO: Layout canvas
-              // <Editor />
-            */}
+          <div className="flex-1 h-full w-full relative z-10">
+            <Editor />
           </div>
         </div>
       </div>
