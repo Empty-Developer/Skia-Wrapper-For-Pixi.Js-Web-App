@@ -3,8 +3,9 @@ import * as PIXI from "pixi.js";
 
 /*
   TODO: 
-    need render point shapes and use pixi.js
-    and transformation in skia method
+    parsing graphic styles
+
+    screen capture and export to PDF
 */
 
 export class convertPixiContainerToSkia {
@@ -68,5 +69,36 @@ export class convertPixiContainerToSkia {
     }
   }
 
+  // take instruction PIXI.Graphics and use in skia
+  private drawGraphics(canvas: Canvas, graphics: PIXI.Graphics): void {
+    const graphicsData = graphics.geometry.graphicsData;
 
+    // paint this is marker for graphics
+    const paint = new this.ck.Paint();
+    paint.setAntiAlias(true);
+
+    graphicsData.forEach((data) => {
+      const { shape, fillStyle, lineStyle } = data;
+
+      // background
+      if (fillStyle && fillStyle.visible) {
+        paint.setStyle(this.ck.PaintStyle.Fill);
+        paint.setColor(this.hexToRgba(fillStyle.color, fillStyle.alpha));
+        this.drawShape(canvas, shape, paint);
+      }
+
+      /*
+        if shape have border, swipe for stroke
+        add width and rendering
+      */
+      if (lineStyle && lineStyle.visible && lineStyle.width > 0) {
+        paint.setStyle(this.ck.PaintStyle.Stroke);
+        paint.setStrokeWidth(lineStyle.width);
+        paint.setColor(this.hexToRgba(lineStyle.color, lineStyle.alpha));
+        this.drawShape(canvas, shape, paint);
+      }
+    });
+
+    paint.delete();
+  }
 }
