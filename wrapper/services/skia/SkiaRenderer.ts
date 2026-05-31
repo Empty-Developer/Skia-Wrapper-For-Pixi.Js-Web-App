@@ -1,12 +1,6 @@
 import { Canvas, CanvasKit, Paint } from "canvaskit-wasm";
 import * as PIXI from "pixi.js";
-
-/*
-  TODO: 
-    parsing graphic styles
-
-    screen capture and export to PDF
-*/
+import { toast } from "sonner"
 
 export class convertPixiContainerToSkia {
   private ck: any;
@@ -100,5 +94,71 @@ export class convertPixiContainerToSkia {
     });
 
     paint.delete();
+  }
+
+  private renderObject(canvas: Canvas, obj: PIXI.DisplayObject): void {
+    if (!obj.visible || obj.alpha === 0) return;
+
+    canvas.save();
+
+    const matrix = obj.transform.localTransform;
+    canvas.concat([
+      matrix.a,
+      matrix.c,
+      matrix.tx,
+      matrix.b,
+      matrix.d,
+      matrix.ty,
+      0,
+      0,
+      1
+    ]);
+
+    if (obj instanceof PIXI.Graphics) {
+      this.drawGraphics(canvas, obj);
+    }
+
+    if (obj instanceof PIXI.Container && obj.children.length > 0) {
+      obj.children.forEach((child) => this.renderObject(canvas, child));
+    }
+
+    canvas.restore();
+  }
+
+  public renderContainer(canvas: Canvas, container: PIXI.Container): void {
+    this.renderObject(canvas, container);
+  }
+
+  public exportToPDF(container: PIXI.Container, fileName: string): void {
+
+    if (!this.ck.MakePDFDocument) {
+      toast.info("The current build does not include the PDF backend")
+      return;
+    }
+
+    const doc = this.ck.MakePDFDocument();
+    if (!doc) return;
+
+    // open page
+    const canvas = doc.beginPage(800, 600);
+    if (canvas) {
+      this.renderContainer(canvas, container);
+      doc.endPage();
+    }
+    const data = doc.endDoc();
+    doc.delete();
+
+    if (data) {
+      // conversion bit
+      const blob = new Blob([data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${fileName}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   }
 }
