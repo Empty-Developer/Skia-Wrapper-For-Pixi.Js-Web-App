@@ -1,14 +1,32 @@
-"use client"
+"use client";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Share } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function DesignHeader() {
-  /*
-    TODO: save name PDF
-  */
+  const [projectName, setProjectName] = useState("untitled-project");
+
+  useEffect(() => {
+    const handleRequest = () => handleExportClick();
+    window.addEventListener("request-pdf-export", handleRequest);
+    return () =>
+      window.removeEventListener("request-pdf-export", handleRequest);
+  }, [projectName]);
+
+  const handleExportClick = () => {
+    // validation for name file
+    const sanitizedName =
+      projectName.trim().replace(/\s+/g, "-") || "untitled-project";
+
+    const event = new CustomEvent("trigger-pdf-export", {
+      detail: { fileName: sanitizedName },
+    });
+    window.dispatchEvent(event);
+  };
+
   return (
     <header className="p-3 flex justify-between items-center shadow-sm bg-white border-b">
       <div className="flex items-center gap-4">
@@ -26,7 +44,10 @@ export default function DesignHeader() {
         />
       </div>
       <div>
-        <Button className="bg-[#FF7E1F] shadow-sm border-none text-sm cursor-pointer rounded-xl transition-all duration-300 p-5">
+        <Button
+          onClick={handleExportClick}
+          className="bg-[#FF7E1F] shadow-sm border-none text-sm cursor-pointer rounded-xl transition-all duration-300 p-5"
+        >
           Export PDF
           <Share />
         </Button>

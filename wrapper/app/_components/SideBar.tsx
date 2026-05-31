@@ -17,7 +17,7 @@ function SideBar() {
     };
     window.addEventListener("switch-scene", handleSceneChanged);
     return () => window.removeEventListener("switch-scene", handleSceneChanged);
-  },[])
+  }, []);
 
   return (
     <div className="h-screen bg-white border-r p-2 w-64">
@@ -31,9 +31,10 @@ function SideBar() {
         const menuButton = (
           <div
             className={`flex p-3 rounded-xl transition-all duration-200 items-center w-full
-              ${isAddDisabled
-                ? "opacity-40 cursor-not-allowed bg-gray-50 text-gray-400"
-                : "hover:bg-amber-100 cursor-pointer text-gray-700"
+              ${
+                isAddDisabled
+                  ? "opacity-40 cursor-not-allowed bg-gray-50 text-gray-400"
+                  : "hover:bg-amber-100 cursor-pointer text-gray-700"
               }`}
             onClick={() => {
               if (isAddDisabled) return;
@@ -42,6 +43,9 @@ function SideBar() {
                 setIsScenePopoverOpen(!isScenePopoverOpen);
               } else if (isAddShape) {
                 const event = new CustomEvent("add-random-shape");
+                window.dispatchEvent(event);
+              } else if (menu.name === "Export PDF") {
+                const event = new CustomEvent("request-pdf-export"); // signal for starting PDF
                 window.dispatchEvent(event);
               }
             }}
