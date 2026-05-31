@@ -3,7 +3,6 @@ import * as PIXI from 'pixi.js-legacy';
 export class PixiManager {
   /*
     TODO:
-      * draw the initial shapes
       * add random shapes
       * respond to clicks on the shapes
       * clear everything when closing
@@ -23,6 +22,10 @@ export class PixiManager {
     g1.drawEllipse(0, 0, 200, 100);
     g1.endFill();
     g1.position.set(200, 100);
+    g1.interactive = true;
+    g1.on("pointerdown", () => {
+      console.log("g1 pointerdown!");
+    });
 
     // blue square
     const g2 = new PIXI.Graphics();
@@ -30,17 +33,29 @@ export class PixiManager {
     g2.drawRect(-50, -75, 100, 150);
     g2.endFill();
     g2.position.set(120, 60);
+    g2.interactive = true;
+    g2.on("pointerdown", () => {
+      console.log("g2 pointerdown!");
+    });
 
     g3.lineStyle(10, '#ffffff', 1)
       .moveTo(0, 0).lineTo(150, 100)
     g3.angle = -20
+    g3.interactive = true;
+    g3.on("pointerdown", () => {
+      console.log("g3 pointerdown!");
+    });
 
 
     g4.lineStyle(10, '#ffff00', 1)
       .moveTo(0, 70).lineTo(150, -30)
     g4.angle = 20
+    g4.interactive = true;
+    g4.on("pointerdown", () => {
+      console.log("g4 pointerdown!");
+    });
 
-    
+
     this.mainContainer.addChild(subContainer, g1, g2);
     subContainer.addChild(g3, g4)
     subContainer.position.set(75, 50)
