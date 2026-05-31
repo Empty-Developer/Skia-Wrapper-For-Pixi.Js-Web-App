@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { WorkspaceMenu } from "../../services/options/Option";
 import { usePathname } from "next/navigation";
 import CustomPopover from "./CustomPopover";
@@ -8,21 +8,41 @@ import CustomPopover from "./CustomPopover";
 function SideBar() {
   const path = usePathname();
   const [isScenePopoverOpen, setIsScenePopoverOpen] = useState(false);
+  const [currentScene, setCurrentScene] = useState("empty");
+
+  useEffect(() => {
+    const handleSceneChanged = (e: Event) => {
+      const customEvent = e as CustomEvent<{ scene: string }>;
+      setCurrentScene(customEvent.detail.scene);
+    };
+    window.addEventListener("switch-scene", handleSceneChanged);
+    return () => window.removeEventListener("switch-scene", handleSceneChanged);
+  },[])
 
   return (
     <div className="h-screen bg-white border-r p-2 w-64">
       {WorkspaceMenu.map((menu, index) => {
         const isSwitchScene = menu.name === "Switch Scene";
+        const isAddShape = menu.name === "Add Random Shape";
+
+        // button one
+        const isAddDisabled = isAddShape && currentScene !== "empty";
 
         const menuButton = (
           <div
-            className="flex hover:bg-amber-100 p-3 rounded-xl transition-all duration-200 cursor-pointer items-center w-full"
+            className={`flex p-3 rounded-xl transition-all duration-200 items-center w-full
+              ${isAddDisabled
+                ? "opacity-40 cursor-not-allowed bg-gray-50 text-gray-400"
+                : "hover:bg-amber-100 cursor-pointer text-gray-700"
+              }`}
             onClick={() => {
+              if (isAddDisabled) return;
+
               if (isSwitchScene) {
                 setIsScenePopoverOpen(!isScenePopoverOpen);
-              } else {
-                // TODO: implement the logic for "Add Random Shape" aand "Export PDF"
-                console.log(menu.name);
+              } else if (isAddShape) {
+                const event = new CustomEvent("add-random-shape");
+                window.dispatchEvent(event);
               }
             }}
           >
