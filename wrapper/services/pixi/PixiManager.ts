@@ -1,20 +1,19 @@
-import * as PIXI from 'pixi.js-legacy';
+import * as PIXI from "pixi.js-legacy";
 
 export class PixiManager {
   /*
     TODO:
       * add random shapes
-      * respond to clicks on the shapes
       * clear everything when closing
-  */ 
+  */
 
   private createDemoScene(): void {
     if (!this.mainContainer) return;
 
-    const subContainer = new PIXI.Container()
+    const subContainer = new PIXI.Container();
 
-    const g3 = new PIXI.Graphics()
-    const g4 = new PIXI.Graphics()
+    const g3 = new PIXI.Graphics();
+    const g4 = new PIXI.Graphics();
 
     // red circle
     const g1 = new PIXI.Graphics();
@@ -22,9 +21,10 @@ export class PixiManager {
     g1.drawEllipse(0, 0, 200, 100);
     g1.endFill();
     g1.position.set(200, 100);
+
     g1.interactive = true;
     g1.on("pointerdown", () => {
-      console.log("g1 pointerdown!");
+      console.log("g1!");
     });
 
     // blue square
@@ -33,39 +33,39 @@ export class PixiManager {
     g2.drawRect(-50, -75, 100, 150);
     g2.endFill();
     g2.position.set(120, 60);
+
     g2.interactive = true;
     g2.on("pointerdown", () => {
-      console.log("g2 pointerdown!");
+      console.log("g2!");
     });
 
-    g3.lineStyle(10, '#ffffff', 1)
-      .moveTo(0, 0).lineTo(150, 100)
-    g3.angle = -20
+    g3.lineStyle(10, "#ffffff", 1).moveTo(0, 0).lineTo(150, 100);
+    g3.angle = -20;
+
     g3.interactive = true;
     g3.on("pointerdown", () => {
-      console.log("g3 pointerdown!");
+      console.log("g3!");
     });
 
+    g4.lineStyle(10, "#ffff00", 1).moveTo(0, 70).lineTo(150, -30);
+    g4.angle = 20;
 
-    g4.lineStyle(10, '#ffff00', 1)
-      .moveTo(0, 70).lineTo(150, -30)
-    g4.angle = 20
     g4.interactive = true;
     g4.on("pointerdown", () => {
-      console.log("g4 pointerdown!");
+      console.log("g4!");
     });
 
-
     this.mainContainer.addChild(subContainer, g1, g2);
-    subContainer.addChild(g3, g4)
-    subContainer.position.set(75, 50)
+    subContainer.addChild(g3, g4);
+    subContainer.position.set(75, 50);
   }
 
   // object scene
   public app: PIXI.Application | null = null;
   public mainContainer: PIXI.Container | null = null;
 
-  public init(container: HTMLDivElement): void { // canvas
+  public init(container: HTMLDivElement): void {
+    // canvas
     this.app = new PIXI.Application({
       width: 500,
       height: 400,
@@ -73,8 +73,7 @@ export class PixiManager {
       forceCanvas: true, // 2d
     });
 
-    container.appendChild(this.app.view as unknown as Node); //add canvas 
-
+    container.appendChild(this.app.view as unknown as Node); //add canvas
 
     // container for shapes
     this.mainContainer = new PIXI.Container();
@@ -82,5 +81,35 @@ export class PixiManager {
     this.app.stage.addChild(this.mainContainer);
 
     this.createDemoScene();
+  }
+
+  public addRandomShape(): void {
+
+    if (!this.mainContainer) return;
+
+    const g = new PIXI.Graphics();
+    const colors = [0xe11d48, 0x2563eb, 0x16a34a, 0xca8a04, 0x9333ea];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+    g.beginFill(randomColor);
+    if (Math.random() > 0.5) {
+      // random width and height for square
+      g.drawRect(0, 0, 80 + Math.random() * 70, 50 + Math.random() * 50);
+    } else {
+      // circle
+      g.drawEllipse(0, 0, 40 + Math.random() * 40, 30 + Math.random() * 30);
+    }
+    g.endFill();
+
+    g.position.set(100 + Math.random() * 300, 100 + Math.random() * 200); // random point
+    g.angle = Math.random() * 360; // random turn
+
+    g.interactive = true;
+    g.on("pointerdown", () => {
+      console.log(`%c[Pixi] #${randomColor.toString(16)}`, `color: #10b981; font-weight: bold;`);
+    });
+
+    this.mainContainer.addChild(g);
+
   }
 }
