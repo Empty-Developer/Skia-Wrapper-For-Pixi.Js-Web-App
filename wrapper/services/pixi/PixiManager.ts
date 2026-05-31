@@ -3,7 +3,6 @@ import * as PIXI from "pixi.js-legacy";
 export class PixiManager {
   /*
     TODO:
-      * add random shapes
       * clear everything when closing
   */
 
@@ -111,5 +110,17 @@ export class PixiManager {
 
     this.mainContainer.addChild(g);
 
+  }
+
+  public destroy(): void {
+    /*
+      deletes the scene 
+      and frees up memory
+    */ 
+    if (this.app) {
+      this.app.destroy(true, { children: true });
+      this.app = null;
+      this.mainContainer = null;
+    }
   }
 }
