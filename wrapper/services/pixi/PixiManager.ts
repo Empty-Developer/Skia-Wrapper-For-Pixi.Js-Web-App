@@ -68,6 +68,13 @@ export class PixiManager {
       height: 400,
       backgroundColor: 0xe4e4e7,
       forceCanvas: true, // 2d
+      /*
+        mini settings
+      */
+      antialias: true,
+      resolution: window.devicePixelRatio || 1,
+      autoDensity: true,
+
     });
 
     container.appendChild(this.app.view as unknown as Node); //add canvas
