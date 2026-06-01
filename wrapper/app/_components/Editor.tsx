@@ -107,11 +107,11 @@ function Editor() {
   }, []);
 
   return (
-    <div className="w-full h-full p-6 flex flex-col items-center justify-center bg-gray-50/50">
-      <div className="text-center p-8 border-2 border-gray-200 rounded-2xl bg-white max-w-md shadow-sm">
+    <div className="w-full h-full p-6 flex flex-col items-center justify-center">
+      <div className="text-center p-0 border border-gray-200 rounded-2xl bg-white max-w-4xl shadow-sm">
         <div
           ref={pixiContainerRef}
-          className="rounded-xl overflow-hidden border border-gray-200 shadow-inner bg-white"
+          className="rounded-xl overflow-hidden bg-white"
         />
       </div>
     </div>

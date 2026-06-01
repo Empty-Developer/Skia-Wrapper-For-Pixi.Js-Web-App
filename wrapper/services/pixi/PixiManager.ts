@@ -64,9 +64,9 @@ export class PixiManager {
   public init(container: HTMLDivElement): void {
     // canvas
     this.app = new PIXI.Application({
-      width: 500,
-      height: 400,
-      backgroundColor: 0xe4e4e7,
+      width: 800,
+      height: 600,
+      backgroundColor: 0xffffff,
       forceCanvas: true, // 2d
       /*
         mini settings
