@@ -22,11 +22,12 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full font-sans bg-white text-black">
         {children}
+        <Toaster />
       </body>
-      <Toaster />
     </html>
   );
 }

@@ -24,7 +24,7 @@ function CustomPopover({ children, open, onOpenChange }: CustomPopoverProps) {
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild className="w-full block">
+      <PopoverTrigger className="w-full block" >
         {children}
       </PopoverTrigger>
 
@@ -53,7 +53,7 @@ function CustomPopover({ children, open, onOpenChange }: CustomPopoverProps) {
           </div>
           <div
             className="border relative h-24 w-full rounded-lg overflow-hidden opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
-            onClick={() => handleSceneSelect("scene1")}
+            onClick={() => handleSceneSelect("scene2")}
           >
             <Image src="/random-two.png" alt="Random Two" fill className="object-cover" />
           </div>
