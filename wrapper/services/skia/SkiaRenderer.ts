@@ -177,91 +177,64 @@ export class convertPixiContainerToSkia {
         stream of text coordinates in SVG format
       */
       const bounds = this.ck.LTRBRect(0, 0, 800, 600);
-      const recorder = new this.ck.PictureRecorder();
-      const recordingCanvas = recorder.beginRecording(bounds);
+      const upscaleFactor = 4;
+      const hdSurface = this.ck.MakeSurface(
+        800 * upscaleFactor,
+        600 * upscaleFactor,
+      );
 
-      const bgPaint = new this.ck.Paint();
-      bgPaint.setColor(this.hexToRgba(0xffffff, 1)); // fill background with white in the vector image
-      recordingCanvas.drawRect(bounds, bgPaint);
-      bgPaint.delete();
+      if (hdSurface) {
+        const hdCanvas = hdSurface.getCanvas();
+        hdCanvas.scale(upscaleFactor, upscaleFactor);
 
-      this.renderContainer(recordingCanvas, container); // render the objects
+        const hdBgPaint = new this.ck.Paint();
+        hdBgPaint.setColor(this.hexToRgba(0xffffff, 1)); // fill background with white in the vector image
+        hdCanvas.drawRect(bounds, hdBgPaint);
+        hdBgPaint.delete();
 
-      const picture = recorder.finishRecordingAsPicture();
-      recorder.delete();
+        this.renderContainer(hdCanvas, container); // render the objects
+        hdSurface.flush();
 
-      const svgString = (this.ck as any).MakeSVGCanvas ? "built-in" : null; // extract clean string of XML-SVG vector specification
+        const hdImage = hdSurface.makeImageSnapshot();
+        if (hdImage) {
+          const pixelBytes = hdImage.readPixels(0, 0, {
+            width: 800 * upscaleFactor,
+            height: 600 * upscaleFactor,
+            colorType: this.ck.ColorType.RGBA_8888,
+            alphaType: this.ck.AlphaType.Unpremul,
+            colorSpace: this.ck.ColorSpace.SRGB,
+          });
+          hdImage.delete();
 
-      const doc = new jsPDF({
-        orientation: "landscape",
-        unit: "px",
-        format: [800, 600],
-        compress: true,
-      });
+          if (pixelBytes) {
+            const tempCanvas = document.createElement("canvas");
+            tempCanvas.width = 800 * upscaleFactor;
+            tempCanvas.height = 600 * upscaleFactor;
+            const tempCtx = tempCanvas.getContext("2d");
+            if (tempCtx) {
+              const imgData = tempCtx.createImageData(
+                800 * upscaleFactor,
+                600 * upscaleFactor,
+              );
+              imgData.data.set(pixelBytes);
+              tempCtx.putImageData(imgData, 0, 0);
 
-      // transferring vector elements to jsPDF
-      if (picture && (picture as any).toSVGString) {
-        const svgText = (picture as any).toSVGString();
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-        const svgEl = svgDoc.documentElement;
-        doc.svg(svgEl, { x: 0, y: 0, width: 800, height: 600 });
-        picture.delete();
-      } else {
-        picture.delete();
-        const upscaleFactor = 4;
-        const hdSurface = this.ck.MakeSurface(
-          800 * upscaleFactor,
-          600 * upscaleFactor,
-        );
+              const dataUrl = tempCanvas.toDataURL("image/png");
+              const doc = new jsPDF({
+                orientation: "landscape",
+                unit: "px",
+                format: [800, 600],
+                compress: true,
+              });
 
-        if (hdSurface) {
-          const hdCanvas = hdSurface.getCanvas();
-          hdCanvas.scale(upscaleFactor, upscaleFactor);
-
-          const hdBgPaint = new this.ck.Paint();
-          hdBgPaint.setColor(this.hexToRgba(0xffffff, 1));
-          hdCanvas.drawRect(bounds, hdBgPaint);
-          hdBgPaint.delete();
-
-          this.renderContainer(hdCanvas, container);
-          hdSurface.flush();
-
-          const hdImage = hdSurface.makeImageSnapshot();
-          if (hdImage) {
-            const pixelBytes = hdImage.readPixels(0, 0, {
-              width: 800 * upscaleFactor,
-              height: 600 * upscaleFactor,
-              colorType: this.ck.ColorType.RGBA_8888,
-              alphaType: this.ck.AlphaType.Unpremul,
-              colorSpace: this.ck.ColorSpace.SRGB,
-            });
-            hdImage.delete();
-
-            if (pixelBytes) {
-              const tempCanvas = document.createElement("canvas");
-              tempCanvas.width = 800 * upscaleFactor;
-              tempCanvas.height = 600 * upscaleFactor;
-              const tempCtx = tempCanvas.getContext("2d");
-              if (tempCtx) {
-                const imgData = tempCtx.createImageData(
-                  800 * upscaleFactor,
-                  600 * upscaleFactor,
-                );
-                imgData.data.set(pixelBytes);
-                tempCtx.putImageData(imgData, 0, 0);
-
-                const dataUrl = tempCanvas.toDataURL("image/png");
-                doc.addImage(dataUrl, "PNG", 0, 0, 800, 600, undefined, "SLOW");
-              }
+              doc.addImage(dataUrl, "PNG", 0, 0, 800, 600, undefined, "SLOW");
+              doc.save(`${fileName}.pdf`);
+              toast.success("Completed");
             }
           }
-          hdSurface.delete();
         }
+        hdSurface.delete();
       }
-
-      doc.save(`${fileName}.pdf`);
-      toast.success("Completed");
     } catch (error) {
       toast.error("Error");
     }
