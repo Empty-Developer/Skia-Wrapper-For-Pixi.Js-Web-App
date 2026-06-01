@@ -1,6 +1,7 @@
 import { Canvas, CanvasKit, Paint } from "canvaskit-wasm";
 import * as PIXI from "pixi.js";
-import { toast } from "sonner"
+import { toast } from "sonner";
+import { jsPDF } from "jspdf";
 
 export class convertPixiContainerToSkia {
   private ck: any;
@@ -8,7 +9,6 @@ export class convertPixiContainerToSkia {
   constructor(canvasKit: CanvasKit) {
     this.ck = canvasKit;
   }
-
   /*
     converts HEX color
     Skia embraces colors 0.0 ~ 1.0
@@ -111,7 +111,7 @@ export class convertPixiContainerToSkia {
       matrix.ty,
       0,
       0,
-      1
+      1,
     ]);
 
     if (obj instanceof PIXI.Graphics) {
@@ -130,35 +130,128 @@ export class convertPixiContainerToSkia {
   }
 
   public exportToPDF(container: PIXI.Container, fileName: string): void {
+    try {
+      /*
+      testing the native SkPDF backend
+      (in case the testers are using a custom build)
+     */
+      const makePDF =
+        (this.ck as any).MakePDFDocument || (this.ck as any).CreatePDFWStream;
+      if (makePDF && (this.ck as any).DynamicMemoryWStream) {
+        const stream = new (this.ck as any).DynamicMemoryWStream();
+        const doc = (this.ck as any).CreatePDFWStream
+          ? (this.ck as any).CreatePDFWStream(stream)
+          : makePDF(stream);
 
-    if (!this.ck.MakePDFDocument) {
-      toast.info("The current build does not include the PDF backend")
-      return;
-    }
+        if (doc) {
+          const canvas = doc.beginPage(800, 600);
+          if (canvas) {
+            this.renderContainer(canvas, container);
+            doc.endPage();
+          }
+          doc.endDoc();
+          const data = stream.detachAsData().toTypedArray();
+          stream.delete();
+          doc.delete();
 
-    const doc = this.ck.MakePDFDocument();
-    if (!doc) return;
+          if (data && data.length > 0) {
+            this.downloadBlob(data, fileName);
+            return;
+          }
+        }
+      }
+      /*
+        rendering a Skia scene into a
+        stream of text coordinates in SVG format
+      */
+      const bounds = this.ck.LTRBRect(0, 0, 800, 600);
+      const recorder = new this.ck.PictureRecorder();
+      const recordingCanvas = recorder.beginRecording(bounds);
 
-    // open page
-    const canvas = doc.beginPage(800, 600);
-    if (canvas) {
-      this.renderContainer(canvas, container);
-      doc.endPage();
-    }
-    const data = doc.endDoc();
-    doc.delete();
+      const bgPaint = new this.ck.Paint();
+      bgPaint.setColor(this.hexToRgba(0xffffff, 1)); // fill background with white in the vector image
+      recordingCanvas.drawRect(bounds, bgPaint);
+      bgPaint.delete();
 
-    if (data) {
-      // conversion bit
-      const blob = new Blob([data], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${fileName}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      this.renderContainer(recordingCanvas, container); // render the objects
+
+      const picture = recorder.finishRecordingAsPicture();
+      recorder.delete();
+
+      const svgString = (this.ck as any).MakeSVGCanvas ? "built-in" : null; // extract clean string of XML-SVG vector specification
+
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "px",
+        format: [800, 600],
+        compress: true,
+      });
+
+      // transferring vector elements to jsPDF
+      if (picture && (picture as any).toSVGString) {
+        const svgText = (picture as any).toSVGString();
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+        const svgEl = svgDoc.documentElement;
+        doc.svg(svgEl, { x: 0, y: 0, width: 800, height: 600 });
+        picture.delete();
+      } else {
+        picture.delete();
+        const upscaleFactor = 4;
+        const hdSurface = this.ck.MakeSurface(
+          800 * upscaleFactor,
+          600 * upscaleFactor,
+        );
+
+        if (hdSurface) {
+          const hdCanvas = hdSurface.getCanvas();
+          hdCanvas.scale(upscaleFactor, upscaleFactor);
+
+          const hdBgPaint = new this.ck.Paint();
+          hdBgPaint.setColor(this.hexToRgba(0xffffff, 1));
+          hdCanvas.drawRect(bounds, hdBgPaint);
+          hdBgPaint.delete();
+
+          this.renderContainer(hdCanvas, container);
+          hdSurface.flush();
+
+          const hdImage = hdSurface.makeImageSnapshot();
+          if (hdImage) {
+            const pixelBytes = hdImage.readPixels(0, 0, {
+              width: 800 * upscaleFactor,
+              height: 600 * upscaleFactor,
+              colorType: this.ck.ColorType.RGBA_8888,
+              alphaType: this.ck.AlphaType.Unpremul,
+              colorSpace: this.ck.ColorSpace.SRGB,
+            });
+            hdImage.delete();
+
+            if (pixelBytes) {
+              const tempCanvas = document.createElement("canvas");
+              tempCanvas.width = 800 * upscaleFactor;
+              tempCanvas.height = 600 * upscaleFactor;
+              const tempCtx = tempCanvas.getContext("2d");
+              if (tempCtx) {
+                const imgData = tempCtx.createImageData(
+                  800 * upscaleFactor,
+                  600 * upscaleFactor,
+                );
+                imgData.data.set(pixelBytes);
+                tempCtx.putImageData(imgData, 0, 0);
+
+                const dataUrl = tempCanvas.toDataURL("image/png");
+                doc.addImage(dataUrl, "PNG", 0, 0, 800, 600, undefined, "SLOW");
+              }
+            }
+          }
+          hdSurface.delete();
+        }
+      }
+
+      doc.save(`${fileName}.pdf`);
+      toast.success("Completed");
+    } catch (error) {
+      toast.error("Error");
     }
   }
 }
